@@ -6,6 +6,7 @@ import morgan from "morgan";
 import connectDB from "./configs/db";
 
 import authRoutes from "./routes/auth.routes";
+import tweetRoutes from "./routes/tweet.routes";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(morgan("dev")); //Log các request ra terminal để dễ debug
 const PORT = process.env.PORT || 5000;
 
 app.use("/api/auth", authRoutes);
+app.use("/api/tweets", tweetRoutes);
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại: http://localhost:${PORT}`);
 });
