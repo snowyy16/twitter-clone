@@ -5,10 +5,12 @@ export const createTweet = async (req: any, res: Response) => {
   try {
     const { content, image, video } = req.body;
 
+    const imageUrl = (req.file as any)?.location || "";
+
     const newTweet = new Tweet({
       user_id: req.user.userId,
       content,
-      image,
+      image: imageUrl,
       video,
     });
     await newTweet.save();
