@@ -17,3 +17,14 @@ export const createTweet = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Lỗi khi đăng bài", error });
   }
 };
+
+export const getTweet = async (req: any, res: Response) => {
+  try {
+    const tweets = await Tweet.find()
+      .populate("user_id", "username avatar")
+      .sort({ created_at: -1 });
+    return res.status(200).json(tweets);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách bài đăng", error });
+  }
+};
