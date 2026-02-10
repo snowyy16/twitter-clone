@@ -5,6 +5,7 @@ export interface ITweet extends Document {
   content: string;
   image?: string;
   video?: string;
+  likes: mongoose.Types.ObjectId[];
   created_at: string;
 }
 const TweetSchema: Schema = new Schema(
@@ -28,6 +29,13 @@ const TweetSchema: Schema = new Schema(
       type: String,
       default: "",
     },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

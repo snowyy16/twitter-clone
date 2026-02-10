@@ -30,3 +30,26 @@ export const getTweet = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi lấy danh sách bài đăng", error });
   }
 };
+export const toggleLike = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params; // id cua tweet
+    const userId = req.user.userId;
+    const tweet = await Tweet.findById(id);
+    if (!tweet)
+      return res.status(404).json({ message: "Không tìm thất tweet" });
+    const isLiked = tweet.likes.includes(userId);
+
+    if (isLiked) {
+      tweet.likes = tweet.likes.filter((id) => id.toString() !== userId);
+    } else {
+      tweet.likes.push(userId as any);
+    }
+    await tweet.save();
+    return res.status(200).json({
+      message: isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
+      likesCount: tweet.likes.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi hệ thống", error });
+  }
+};

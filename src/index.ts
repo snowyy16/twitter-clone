@@ -7,7 +7,7 @@ import connectDB from "./configs/db";
 
 import authRoutes from "./routes/auth.routes";
 import tweetRoutes from "./routes/tweet.routes";
-
+import userRoutes from "./routes/user.routes";
 dotenv.config();
 
 connectDB();
@@ -22,6 +22,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tweets", tweetRoutes);
+app.use("/api/users", userRoutes);
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại: http://localhost:${PORT}`);
 });
