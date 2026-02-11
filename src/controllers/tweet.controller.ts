@@ -1,6 +1,7 @@
 import { Response } from "express";
 import Tweet from "../models/Tweet.schema";
-
+import Follow from "../models/Follow.schema";
+import Comment from "../models/Comment.schema";
 export const createTweet = async (req: any, res: Response) => {
   try {
     const { content, image, video } = req.body;
@@ -22,7 +23,19 @@ export const createTweet = async (req: any, res: Response) => {
 
 export const getTweet = async (req: any, res: Response) => {
   try {
-    const tweets = await Tweet.find()
+    // 1. Tìm danh sách những người mà người dùng đang theo dõi
+    const userId = req.user.userId;
+    const following = await Follow.find({ follower_id: userId }).select(
+      "following_id",
+    );
+    const followingIds = following.map((f) => f.following_id);
+
+    // 2. Thêm ID của chính người dùng vào danh sách để thấy bài viết của mình
+    followingIds.push(userId);
+    // 3. Lọc Tweet: user_id phải nằm trong danh sách followingIds
+    const tweets = await Tweet.find({
+      user_id: { $in: followingIds },
+    })
       .populate("user_id", "username avatar")
       .sort({ created_at: -1 });
     return res.status(200).json(tweets);
@@ -37,7 +50,7 @@ export const toggleLike = async (req: any, res: Response) => {
     const tweet = await Tweet.findById(id);
     if (!tweet)
       return res.status(404).json({ message: "Không tìm thất tweet" });
-    const isLiked = tweet.likes.includes(userId);
+    const isLiked = tweet.likes.some((likeId) => likeId.toString() === userId);
 
     if (isLiked) {
       tweet.likes = tweet.likes.filter((id) => id.toString() !== userId);
@@ -50,6 +63,23 @@ export const toggleLike = async (req: any, res: Response) => {
       likesCount: tweet.likes.length,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Lỗi hệ thống", error });
+  }
+};
+export const addComment = async (req: any, res: Response) => {
+  try {
+    const { tweetId, content } = req.body;
+    const newComment = new Comment({
+      tweet_id: tweetId,
+      user_id: req.user.userId,
+      content,
+    });
+    await newComment.save();
+    return res
+      .status(201)
+      .json({ message: "Bình luận thành công", comment: newComment });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi bình luận", error });
   }
 };

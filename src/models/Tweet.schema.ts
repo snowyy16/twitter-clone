@@ -13,13 +13,13 @@ const TweetSchema: Schema = new Schema(
     user_id: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
       index: true,
     },
     content: {
       type: String,
-      require: true,
-      kMaxLength: 280,
+      required: true,
+      maxLength: 280,
     },
     image: {
       type: String,

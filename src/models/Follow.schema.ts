@@ -2,8 +2,8 @@ import mongoose, { Schema } from "mongoose";
 
 const FollowSchema = new Schema(
   {
-    follower_id: { type: Schema.Types.ObjectId, ref: "User", require: true },
-    following_id: { type: Schema.Types.ObjectId, ref: "User", require: true },
+    follower_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    following_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true },
 );

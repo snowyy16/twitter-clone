@@ -1,5 +1,7 @@
 import { Response } from "express";
 import Follow from "../models/Follow.schema";
+import User from "../models/User.schema";
+import Tweet from "../models/Tweet.schema";
 
 export const toggleFollow = async (req: any, res: Response) => {
   try {
@@ -28,5 +30,33 @@ export const toggleFollow = async (req: any, res: Response) => {
     res.status(200).json({ message: "Đã theo dõi thành công" });
   } catch (error) {
     res.status(500).json({ message: "Lỗi hệ thống", error });
+  }
+};
+
+export const getProfile = async (req: any, res: Response) => {
+  try {
+    const { username } = req.params;
+    // 1. Lấy thông tin User (không lấy password)
+    const user = await User.findOne({ username }).select("-password");
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    // 2. Đếm số người đang theo dõi và người được theo dõi
+    const followingCount = await Follow.countDocuments({
+      follower_id: user._id,
+    });
+    const followersCount = await Follow.countDocuments({
+      following_id: user._id,
+    });
+    // 3. Lấy danh sách Tweet của người này
+    const tweet = await Tweet.find({ user_id: user._id }).sort({
+      created_at: -1,
+    });
+    return res.status(200).json({
+      user,
+      stats: { followingCount, followersCount, tweetsCount: tweet.length },
+      tweet,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy thông tin cá nhân", error });
   }
 };
