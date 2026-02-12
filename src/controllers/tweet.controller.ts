@@ -83,3 +83,15 @@ export const addComment = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi bình luận", error });
   }
 };
+export const getCommentByTweet = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comments = await Comment.find({ tweet_id: id })
+      .populate("user_id", "username avatar")
+      .sort({ createdAt: -1 });
+    return res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách bình luận", error });
+  }
+};

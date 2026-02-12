@@ -2,6 +2,7 @@ import { Response } from "express";
 import Follow from "../models/Follow.schema";
 import User from "../models/User.schema";
 import Tweet from "../models/Tweet.schema";
+import { error } from "node:console";
 
 export const toggleFollow = async (req: any, res: Response) => {
   try {
@@ -58,5 +59,32 @@ export const getProfile = async (req: any, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy thông tin cá nhân", error });
+  }
+};
+export const updateProfile = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.userId;
+    const { username } = req.body;
+    // Lấy URL ảnh từ S3 nếu người dùng có upload file mới
+    const avatarUrl = (req.file as any)?.location;
+
+    const updateData: any = {};
+    if (username) updateData.username = username;
+    if (avatarUrl) updateData.avatar = avatarUrl;
+
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true },
+    ).select("-password");
+    if (!updateUser)
+      return res
+        .status(404)
+        .json({ message: "Lỗi không tìm thấy người dùng", error });
+    return res
+      .status(200)
+      .json({ message: "Cập nhật thành công", user: updateUser });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi cập nhật thông tin", error });
   }
 };
