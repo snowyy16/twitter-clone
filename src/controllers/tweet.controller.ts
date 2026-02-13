@@ -2,6 +2,7 @@ import { Response } from "express";
 import Tweet from "../models/Tweet.schema";
 import Follow from "../models/Follow.schema";
 import Comment from "../models/Comment.schema";
+import Notification from "../models/Notification.schema";
 export const createTweet = async (req: any, res: Response) => {
   try {
     const { content, image, video } = req.body;
@@ -71,6 +72,15 @@ export const toggleLike = async (req: any, res: Response) => {
       tweet.likes.push(userId as any);
     }
     await tweet.save();
+    if (!isLiked) {
+      const newNotification = new Notification({
+        recipient_id: tweet.user_id,
+        sender_id: userId,
+        type: "like",
+        tweet_id: tweet._id,
+      });
+      await newNotification.save();
+    }
     return res.status(200).json({
       message: isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
       likesCount: tweet.likes.length,
