@@ -3,6 +3,7 @@ import Follow from "../models/Follow.schema";
 import User from "../models/User.schema";
 import Tweet from "../models/Tweet.schema";
 import { error } from "node:console";
+import Notification from "../models/Notification.schema";
 
 export const toggleFollow = async (req: any, res: Response) => {
   try {
@@ -86,5 +87,21 @@ export const updateProfile = async (req: any, res: Response) => {
       .json({ message: "Cập nhật thành công", user: updateUser });
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi cập nhật thông tin", error });
+  }
+};
+export const getNotifications = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.userId; // Lấy từ middleware verifyToken
+
+    const notifications = await Notification.find({
+      recipient_id: userId,
+    })
+      .populate("sender_id", "username avatar") // Lấy thông tin người tương tác
+      .populate("tweet_id", "content") // Lấy nội dung tweet liên quan
+      .sort({ createdAt: -1 }); // Thông báo mới nhất lên đầu
+
+    return res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy thông báo", error });
   }
 };
