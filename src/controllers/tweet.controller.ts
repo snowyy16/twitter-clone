@@ -25,6 +25,9 @@ export const getTweet = async (req: any, res: Response) => {
   try {
     // 1. Tìm danh sách những người mà người dùng đang theo dõi
     const userId = req.user.userId;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const following = await Follow.find({ follower_id: userId }).select(
       "following_id",
     );
@@ -37,8 +40,18 @@ export const getTweet = async (req: any, res: Response) => {
       user_id: { $in: followingIds },
     })
       .populate("user_id", "username avatar")
-      .sort({ created_at: -1 });
-    return res.status(200).json(tweets);
+      .sort({ created_at: -1 })
+      .skip(skip) // Bỏ qua các bài viết của trang trước
+      .limit(limit); // Giới hạn số lượng bài viết lấy ra
+    const totalTweets = await Tweet.countDocuments({
+      user_id: { $in: followingIds },
+    });
+    return res.status(200).json({
+      tweets,
+      currentPage: page,
+      totalPages: Math.ceil(totalTweets / limit),
+      totalTweets,
+    });
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy danh sách bài đăng", error });
   }
