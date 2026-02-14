@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import Tweet from "../models/Tweet.schema";
 import Follow from "../models/Follow.schema";
 import Comment from "../models/Comment.schema";
@@ -116,5 +117,41 @@ export const getCommentByTweet = async (req: any, res: Response) => {
     return res.status(200).json(comments);
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy danh sách bình luận", error });
+  }
+};
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
+});
+export const deleteTweet = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const tweet = await Tweet.findById(id);
+    if (!tweet)
+      return res.status(404).json({ message: "Không tìm thấy bài đăng" });
+    // Kiểm tra quyền sở hữu
+    if (tweet.user_id.toString() !== userId)
+      return res
+        .status(403)
+        .json({ message: " Bạn không có quyền xóa bài này" });
+    if (tweet.image) {
+      const key = tweet.image.split("/").pop();
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: `tweets/${key}`,
+        }),
+      );
+    }
+    await Tweet.findByIdAndDelete(id);
+    res.status(200).json({ message: "Xóa bài đăng thành công" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi xóa bài đăng", error });
   }
 };
