@@ -159,7 +159,7 @@ export const searchTweets = async (req: any, res: Response) => {
   try {
     const query = req.query.q as string;
     const tweets = await Tweet.find({
-      username: { $regex: query, $options: "i" }, // Tìm kiếm không phân biệt hoa thường
+      content: { $regex: query, $options: "i" }, // Tìm kiếm không phân biệt hoa thường
     })
       .populate("user_id", "username avatar")
       .limit(10);
