@@ -1,5 +1,6 @@
 import {
   getNotifications,
+  markNotificationsAsRead,
   searchUsers,
   toggleFollow,
   updateProfile,
@@ -12,7 +13,8 @@ import { upload } from "../services/upload.service";
 const router = Router();
 router.patch("/profile", verifyToken, upload.single("avatar"), updateProfile);
 router.get("/notifications", verifyToken, getNotifications);
+router.patch("/notifications/read", verifyToken, markNotificationsAsRead);
+router.get("/search", searchUsers);
 router.post("/follow", verifyToken, toggleFollow);
 router.get("/:username", getProfile);
-router.get("/search", searchUsers);
 export default router;

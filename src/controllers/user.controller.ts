@@ -119,3 +119,19 @@ export const searchUsers = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Lỗi tìm kiếm người dùng", error });
   }
 };
+export const markNotificationsAsRead = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.userId; // Lấy từ Token
+
+    await Notification.updateMany(
+      { recipient_id: userId, is_read: false },
+      { $set: { is_read: true } },
+    );
+
+    return res
+      .status(200)
+      .json({ message: "Đã đánh dấu tất cả thông báo là đã đọc" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi cập nhật thông báo", error });
+  }
+};
