@@ -155,3 +155,16 @@ export const deleteTweet = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi xóa bài đăng", error });
   }
 };
+export const searchTweets = async (req: any, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    const tweets = await Tweet.find({
+      username: { $regex: query, $options: "i" }, // Tìm kiếm không phân biệt hoa thường
+    })
+      .populate("user_id", "username avatar")
+      .limit(10);
+    return res.status(200).json(tweets);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi tìm kiếm bài đăng", error });
+  }
+};

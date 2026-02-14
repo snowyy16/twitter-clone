@@ -1,5 +1,6 @@
 import {
   getNotifications,
+  searchUsers,
   toggleFollow,
   updateProfile,
 } from "../controllers/user.controller";
@@ -13,5 +14,5 @@ router.patch("/profile", verifyToken, upload.single("avatar"), updateProfile);
 router.get("/notifications", verifyToken, getNotifications);
 router.post("/follow", verifyToken, toggleFollow);
 router.get("/:username", getProfile);
-
+router.get("/search", searchUsers);
 export default router;

@@ -105,3 +105,17 @@ export const getNotifications = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi lấy thông báo", error });
   }
 };
+
+export const searchUsers = async (req: any, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    const users = await User.find({
+      username: { $regex: query, $options: "i" }, // Tìm kiếm không phân biệt hoa thường
+    })
+      .select("username avatar")
+      .limit(10);
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi tìm kiếm người dùng", error });
+  }
+};
