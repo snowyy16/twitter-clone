@@ -140,4 +140,38 @@ export const markNotificationsAsRead = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi cập nhật thông báo", error });
   }
 };
+// Lấy danh sách những người đang theo dõi user này (Followers)
+export const getFollowers = async (req: any, res: Response) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
 
+    const followers = await Follow.find({ following_id: user._id })
+      .populate("follower_id", "username avatar") // Lấy info người đi follow
+      .select("follower_id");
+
+    return res.status(200).json(followers.map((f) => f.follower_id));
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách followers", error });
+  }
+};
+
+// Lấy danh sách những người mà user này đang theo dõi (Following)
+export const getFollowing = async (req: any, res: Response) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+
+    const following = await Follow.find({ follower_id: user._id })
+      .populate("following_id", "username avatar") // Lấy info người được follow
+      .select("following_id");
+
+    return res.status(200).json(following.map((f) => f.following_id));
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách following", error });
+  }
+};
