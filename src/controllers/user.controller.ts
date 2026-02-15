@@ -38,8 +38,9 @@ export const toggleFollow = async (req: any, res: Response) => {
 export const getProfile = async (req: any, res: Response) => {
   try {
     const { username } = req.params;
+    const currentUserId = req.user.userId;
     // 1. Lấy thông tin User (không lấy password)
-    const user = await User.findOne({ username }).select("-password");
+    const user = await User.findOne({ username }).select("-password").lean();
     if (!user)
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
     // 2. Đếm số người đang theo dõi và người được theo dõi
@@ -47,6 +48,10 @@ export const getProfile = async (req: any, res: Response) => {
       follower_id: user._id,
     });
     const followersCount = await Follow.countDocuments({
+      following_id: user._id,
+    });
+    const isFollowing = await Follow.exists({
+      follower_id: currentUserId,
       following_id: user._id,
     });
     // 3. Lấy danh sách Tweet của người này
@@ -135,3 +140,4 @@ export const markNotificationsAsRead = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi cập nhật thông báo", error });
   }
 };
+

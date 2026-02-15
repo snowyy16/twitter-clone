@@ -44,12 +44,19 @@ export const getTweet = async (req: any, res: Response) => {
       .populate("user_id", "username avatar")
       .sort({ created_at: -1 })
       .skip(skip) // Bỏ qua các bài viết của trang trước
-      .limit(limit); // Giới hạn số lượng bài viết lấy ra
+      .limit(limit) // Giới hạn số lượng bài viết lấy ra
+      .lean(); // Sử dụng .lean() để có thể chỉnh sửa object trả về
+
+    const tweetsWithInteration = tweets.map((tweet: any) => ({
+      ...tweet,
+      isLiked: tweet.likes.some((id: any) => id.toString() === userId),
+    }));
+
     const totalTweets = await Tweet.countDocuments({
       user_id: { $in: followingIds },
     });
     return res.status(200).json({
-      tweets,
+      tweets: tweetsWithInteration,
       currentPage: page,
       totalPages: Math.ceil(totalTweets / limit),
       totalTweets,
