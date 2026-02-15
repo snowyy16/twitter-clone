@@ -38,32 +38,41 @@ export const toggleFollow = async (req: any, res: Response) => {
 export const getProfile = async (req: any, res: Response) => {
   try {
     const { username } = req.params;
-    const currentUserId = req.user.userId;
-    // 1. Lấy thông tin User (không lấy password)
-    const user = await User.findOne({ username }).select("-password").lean();
+    const currentUserId = req.user?.userId;
+
+    // 1. Lấy thông tin User
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username}$`, "i") },
+    })
+      .select("-password")
+      .lean();
+
     if (!user)
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
-    // 2. Đếm số người đang theo dõi và người được theo dõi
-    const followingCount = await Follow.countDocuments({
-      follower_id: user._id,
-    });
-    const followersCount = await Follow.countDocuments({
-      following_id: user._id,
-    });
+    // 2. Thực hiện các truy vấn song song để tối ưu
+    const [followingCount, followersCount, userTweets] = await Promise.all([
+      Follow.countDocuments({ follower_id: user._id }),
+      Follow.countDocuments({ following_id: user._id }),
+      Tweet.find({ user_id: user._id }).sort({ created_at: -1 }).lean(),
+    ]);
+
+    // 3. Kiểm tra trạng thái follow
     const isFollowing = await Follow.exists({
       follower_id: currentUserId,
       following_id: user._id,
     });
-    // 3. Lấy danh sách Tweet của người này
-    const tweet = await Tweet.find({ user_id: user._id }).sort({
-      created_at: -1,
-    });
+
     return res.status(200).json({
-      user,
-      stats: { followingCount, followersCount, tweetsCount: tweet.length },
-      tweet,
+      user: { ...user, isFollowing: !!isFollowing },
+      stats: {
+        followingCount,
+        followersCount,
+        tweetsCount: userTweets.length,
+      },
+      tweets: userTweets,
     });
   } catch (error) {
+    console.error("Lỗi Profile:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin cá nhân", error });
   }
 };

@@ -13,12 +13,14 @@ import { getProfile } from "../controllers/user.controller";
 import { upload } from "../services/upload.service";
 
 const router = Router();
+// 1. Các route tĩnh/cụ thể đưa lên đầu
 router.patch("/profile", verifyToken, upload.single("avatar"), updateProfile);
 router.get("/notifications", verifyToken, getNotifications);
 router.patch("/notifications/read", verifyToken, markNotificationsAsRead);
 router.get("/search", searchUsers);
-router.post("/follow", verifyToken, toggleFollow);
+
+// 2. Các route có tham số động đưa xuống cuối
 router.get("/followers/:username", verifyToken, getFollowers);
 router.get("/following/:username", verifyToken, getFollowing);
-router.get("/:username", getProfile);
+router.get("/:username", verifyToken, getProfile);
 export default router;
