@@ -19,7 +19,7 @@ router.patch("/profile", verifyToken, upload.single("avatar"), updateProfile);
 router.get("/notifications", verifyToken, getNotifications);
 router.patch("/notifications/read", verifyToken, markNotificationsAsRead);
 router.get("/search", searchUsers);
-
+router.post("/follow", verifyToken, toggleFollow);
 // 2. Các route có tham số động đưa xuống cuối
 router.get("/followers/:username", verifyToken, getFollowers);
 router.get("/following/:username", verifyToken, getFollowing);

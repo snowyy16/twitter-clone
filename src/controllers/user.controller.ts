@@ -222,8 +222,12 @@ export const getSuggestedUsers = async (req: any, res: Response) => {
     followingIds.push(userId);
     // 2. Tìm người dùng mới không nằm trong danh sách trên
     const suggestUser = await User.find({
-      _id:{$nin: followingIds}
-    }).select("username avatar").limit(5).lean()
+      _id: { $nin: followingIds },
+    })
+      .select("username avatar")
+      .limit(5)
+      .lean();
+    return res.status(200).json(suggestUser);
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy gợi ý người dùng", error });
   }
