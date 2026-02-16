@@ -211,3 +211,20 @@ export const getFollowing = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi lấy danh sách following", error });
   }
 };
+export const getSuggestedUsers = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.userId;
+    // 1. Lấy danh sách ID những người bạn ĐÃ follow
+    const following = await Follow.find({ follower_id: userId }).select(
+      "following_id",
+    );
+    const followingIds = following.map((f) => f.following_id);
+    followingIds.push(userId);
+    // 2. Tìm người dùng mới không nằm trong danh sách trên
+    const suggestUser = await User.find({
+      _id:{$nin: followingIds}
+    }).select("username avatar").limit(5).lean()
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy gợi ý người dùng", error });
+  }
+};

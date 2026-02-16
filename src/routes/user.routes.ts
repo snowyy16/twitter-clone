@@ -6,6 +6,7 @@ import {
   updateProfile,
   getFollowers,
   getFollowing,
+  getSuggestedUsers,
 } from "../controllers/user.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
 import { Router } from "express";
@@ -22,5 +23,6 @@ router.get("/search", searchUsers);
 // 2. Các route có tham số động đưa xuống cuối
 router.get("/followers/:username", verifyToken, getFollowers);
 router.get("/following/:username", verifyToken, getFollowing);
+router.get("/suggested", verifyToken, getSuggestedUsers);
 router.get("/:username", verifyToken, getProfile);
 export default router;
