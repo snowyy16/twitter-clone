@@ -2,8 +2,9 @@ import { Response } from "express";
 import Follow from "../models/Follow.schema";
 import User from "../models/User.schema";
 import Tweet from "../models/Tweet.schema";
-import { error } from "node:console";
 import Notification from "../models/Notification.schema";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { error } from "node:console";
 
 export const toggleFollow = async (req: any, res: Response) => {
   try {
@@ -76,6 +77,14 @@ export const getProfile = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi khi lấy thông tin cá nhân", error });
   }
 };
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
+});
+
 export const updateProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId;
@@ -83,9 +92,27 @@ export const updateProfile = async (req: any, res: Response) => {
     // Lấy URL ảnh từ S3 nếu người dùng có upload file mới
     const avatarUrl = (req.file as any)?.location;
 
+    const user = await User.findById(userId);
+    if (!user)
+      return res.status(404).json({ message: "Lỗi không tìm thấy người dùng" });
+
     const updateData: any = {};
     if (username) updateData.username = username;
-    if (avatarUrl) updateData.avatar = avatarUrl;
+    if (avatarUrl) {
+      if (user.avatar && user.avatar.includes("amazonaws.com")) {
+        try {
+          const oldKey = user.avatar.split("/").pop(); // Lấy tên file
+          await s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: process.env.AWS_S3_BUCKET_NAME,
+              Key: `tweets/${oldKey}`, // Đảm bảo đúng folder trên S3
+            }),
+          );
+        } catch (s3Error) {
+          console.error("Lỗi xóa ảnh cũ trên S3:", s3Error);
+        }
+      }
+    }
 
     const updateUser = await User.findByIdAndUpdate(
       userId,
