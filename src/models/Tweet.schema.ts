@@ -5,6 +5,7 @@ export interface ITweet extends Document {
   content: string;
   image?: string;
   video?: string;
+  hashtags: string[];
   likes: mongoose.Types.ObjectId[];
   created_at: string;
 }
@@ -29,6 +30,12 @@ const TweetSchema: Schema = new Schema(
       type: String,
       default: "",
     },
+    hashtags: [
+      {
+        type: String,
+        index: true, // Đánh index để tìm kiếm các bài viết theo hashtag nhanh hơn
+      },
+    ],
     likes: [
       {
         type: Schema.Types.ObjectId,

@@ -1,13 +1,20 @@
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import Tweet from "../models/Tweet.schema";
 import Follow from "../models/Follow.schema";
 import Comment from "../models/Comment.schema";
 import Notification from "../models/Notification.schema";
-export const createTweet = async (req: any, res: Response) => {
+export const createTweet = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const { content, image, video } = req.body;
-
+    const { content, video } = req.body;
+    const hashtags = content.match(/#[a-z0-9_]+/gi) || [];
+    const clearHastags = hashtags.map((tag: string) => {
+      tag.toLowerCase().replace("#", "");
+    });
     const imageUrl = (req.file as any)?.location || "";
 
     const newTweet = new Tweet({
@@ -15,11 +22,12 @@ export const createTweet = async (req: any, res: Response) => {
       content,
       image: imageUrl,
       video,
+      hashtags: clearHastags, // Lưu mảng hashtag vào database
     });
     await newTweet.save();
     res.status(201).json({ message: "Đăng bài thành công!", tweet: newTweet });
   } catch (error) {
-    return res.status(500).json({ message: "Lỗi khi đăng bài", error });
+    next(error);
   }
 };
 
