@@ -8,6 +8,7 @@ import connectDB from "./configs/db";
 import authRoutes from "./routes/auth.routes";
 import tweetRoutes from "./routes/tweet.routes";
 import userRoutes from "./routes/user.routes";
+import { errorHandler } from "./middlewares/error.middleware";
 dotenv.config();
 
 connectDB();
@@ -20,6 +21,7 @@ app.use(helmet());
 app.use(morgan("dev")); //Log các request ra terminal để dễ debug
 const PORT = process.env.PORT || 5000;
 
+app.use(errorHandler);
 app.use("/api/auth", authRoutes);
 app.use("/api/tweets", tweetRoutes);
 app.use("/api/users", userRoutes);
