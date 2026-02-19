@@ -5,6 +5,7 @@ import Tweet from "../models/Tweet.schema";
 import Follow from "../models/Follow.schema";
 import Comment from "../models/Comment.schema";
 import Notification from "../models/Notification.schema";
+import { io, getReceiverSocketId } from "../index";
 export const createTweet = async (
   req: any,
   res: Response,
@@ -97,6 +98,14 @@ export const toggleLike = async (req: any, res: Response) => {
         tweet_id: tweet._id,
       });
       await newNotification.save();
+      const receiverSocketId = getReceiverSocketId(tweet.user_id.toString());
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("new_notification", {
+          type: "like",
+          sender: req.user.userId,
+          tweetId: tweet._id,
+        });
+      }
     }
     return res.status(200).json({
       message: isLiked ? "Đã bỏ thích" : "Đã thích bài viết",

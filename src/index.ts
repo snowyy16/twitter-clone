@@ -17,13 +17,26 @@ connectDB();
 
 const app: Application = express();
 const httpService = createServer(app);
-const io = new Server(httpService, {
+export const io = new Server(httpService, {
   cors: { origin: "*" },
 });
+const onlineUsers = new Map();
 io.on("connection", (socket) => {
-  console.log("Người dùng kết nối:", socket.id);
-  socket.on("disconnect", () => console.log("Người dùng ngắt kết nối"));
+  socket.on("register", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    console.log(`User ${userId} online với socketId: ${socket.id}`);
+  });
+  socket.on("disconnect", () => {
+    for (let [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+  });
 });
+export const getReceiverSocketId = (receiverId: string) =>
+  onlineUsers.get(receiverId);
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
