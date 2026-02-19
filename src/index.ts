@@ -20,7 +20,7 @@ const httpService = createServer(app);
 export const io = new Server(httpService, {
   cors: { origin: "*" },
 });
-const onlineUsers = new Map();
+const onlineUsers = new Map<string, string>();
 io.on("connection", (socket) => {
   socket.on("register", (userId) => {
     onlineUsers.set(userId, socket.id);
