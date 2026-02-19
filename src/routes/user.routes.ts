@@ -7,6 +7,8 @@ import {
   getFollowers,
   getFollowing,
   getSuggestedUsers,
+  sendMessage,
+  getMessages,
 } from "../controllers/user.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
 import { Router } from "express";
@@ -20,9 +22,11 @@ router.get("/notifications", verifyToken, getNotifications);
 router.patch("/notifications/read", verifyToken, markNotificationsAsRead);
 router.get("/search", searchUsers);
 router.post("/follow", verifyToken, toggleFollow);
+router.post("/messages", verifyToken, sendMessage);
 // 2. Các route có tham số động đưa xuống cuối
 router.get("/followers/:username", verifyToken, getFollowers);
 router.get("/following/:username", verifyToken, getFollowing);
 router.get("/suggested", verifyToken, getSuggestedUsers);
+router.get("/messages/:partnerId", verifyToken, getMessages);
 router.get("/:username", verifyToken, getProfile);
 export default router;

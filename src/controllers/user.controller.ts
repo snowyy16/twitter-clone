@@ -3,8 +3,10 @@ import Follow from "../models/Follow.schema";
 import User from "../models/User.schema";
 import Tweet from "../models/Tweet.schema";
 import Notification from "../models/Notification.schema";
+import Message from "../models/Message.schema";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { error } from "node:console";
+import { io, getReceiverSocketId } from "../index";
 
 export const toggleFollow = async (req: any, res: Response) => {
   try {
@@ -230,5 +232,43 @@ export const getSuggestedUsers = async (req: any, res: Response) => {
     return res.status(200).json(suggestUser);
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy gợi ý người dùng", error });
+  }
+};
+export const sendMessage = async (req: any, res: Response) => {
+  try {
+    const { receiverId, content } = req.body;
+    const senderId = req.user.userId;
+    const newMessage = new Message({
+      sender_id: senderId,
+      receiver_id: receiverId,
+      content,
+    });
+    await newMessage.save();
+    // Gửi tin nhắn real-time nếu người nhận online
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("new_message", newMessage);
+    }
+    res.status(201).json(newMessage);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi lấy tin nhắn", error });
+  }
+};
+export const getMessages = async (req: any, res: Response) => {
+  try {
+    const { partnerId } = req.params;
+    const userId = req.user.userId;
+
+    const message = await Message.find({
+      $or: [
+        { sender_id: userId, receiver_id: partnerId },
+        {
+          sender_id: partnerId,
+          receiver_id: userId,
+        },
+      ],
+    }).sort({ createAt: -1 });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi lấy tin nhắn", error });
   }
 };
