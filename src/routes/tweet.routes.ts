@@ -3,6 +3,7 @@ import {
   createTweet,
   deleteTweet,
   getCommentByTweet,
+  getTrendingHashtags,
   getTweet,
   searchTweets,
   toggleLike,
@@ -18,5 +19,6 @@ router.patch("/:id/like", verifyToken, toggleLike); // PATCH http://localhost:50
 router.post("/comment", verifyToken, addComment);
 router.get("/:id/comments", getCommentByTweet); // GET http://localhost:5000/api/tweets/<id>/comments
 router.get("/search",searchTweets)
+router.get("/trending", getTrendingHashtags);
 router.delete("/:id",verifyToken,deleteTweet)
 export default router;

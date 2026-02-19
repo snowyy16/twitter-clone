@@ -1,3 +1,4 @@
+import { count, error } from "node:console";
 import { NextFunction, Response } from "express";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import Tweet from "../models/Tweet.schema";
@@ -181,5 +182,40 @@ export const searchTweets = async (req: any, res: Response) => {
     return res.status(200).json(tweets);
   } catch (error) {
     return res.status(500).json({ message: "Lỗi tìm kiếm bài đăng", error });
+  }
+};
+
+export const getTrendingHashtags = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const trending = await Tweet.aggregate([
+      // 1. Tách mảng hashtags thành từng dòng riêng lẻ
+      { $unwind: "$hashtags" },
+      // 2. Gom nhóm theo tên hashtag và đếm số lượng
+      {
+        $group: {
+          _id: "$hashtags",
+          count: { $sum: 1 },
+        },
+      },
+      // 3. Sắp xếp giảm dần theo số lượng
+      { $sort: { count: -1 } },
+      // 4. Lấy 5 kết quả đầu tiên
+      { $limit: 5 },
+      // 5. Định dạng lại kết quả trả về
+      {
+        $project: {
+          _id: 0,
+          tag: "$_id",
+          count: 1,
+        },
+      },
+    ]);
+    return res.status(200).json(trending);
+  } catch (error) {
+    next(error);
   }
 };
