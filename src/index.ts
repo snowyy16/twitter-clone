@@ -34,6 +34,18 @@ io.on("connection", (socket) => {
       }
     }
   });
+  socket.on("typing...", ({ receiverId, senderId }) => {
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("user_typing", senderId);
+    }
+  });
+  socket.on("stop_typing", ({ receiverId }) => {
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("user_stop_typing");
+    }
+  });
 });
 export const getReceiverSocketId = (receiverId: string) =>
   onlineUsers.get(receiverId);
