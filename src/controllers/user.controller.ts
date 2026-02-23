@@ -259,6 +259,9 @@ export const getMessages = async (req: any, res: Response) => {
     const { partnerId } = req.params;
     const userId = req.user.userId;
 
+    const page = parseInt(req.query.page as string) | 1;
+    const limit = parseInt(req.query.limit as string) | 20;
+    const skip = (page - 1) * limit;
     const messages = await Message.find({
       $or: [
         { sender_id: userId, receiver_id: partnerId },
@@ -267,8 +270,11 @@ export const getMessages = async (req: any, res: Response) => {
           receiver_id: userId,
         },
       ],
-    }).sort({ createdAt: 1 });
-    return res.status(200).json(messages);
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    return res.status(200).json(messages.reverse());
   } catch (error) {
     res.status(500).json({ message: "Lỗi lấy tin nhắn", error });
   }
