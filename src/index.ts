@@ -11,6 +11,7 @@ import userRoutes from "./routes/user.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import rateLimit from "express-rate-limit";
 dotenv.config();
 
 connectDB();
@@ -47,6 +48,12 @@ io.on("connection", (socket) => {
     }
   });
 });
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1500,
+  max: 100,
+  message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút",
+});
+app.use("/api/", limiter); // Áp dụng cho toàn bộ API
 export const getReceiverSocketId = (receiverId: string) =>
   onlineUsers.get(receiverId);
 app.use(express.json());
