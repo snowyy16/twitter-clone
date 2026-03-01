@@ -108,7 +108,7 @@ export const updateProfile = async (req: any, res: Response) => {
     const updateData: any = {};
     if (username) updateData.username = username;
     if (avatarUrl) {
-      if (user.avatar && user.avatar.includes("amazonaws.com")) {
+      if (user.avatar && user.avatar) {
         try {
           const oldKey = user.avatar.split("/").pop(); // Lấy tên file
           await s3Client.send(
