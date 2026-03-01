@@ -286,3 +286,21 @@ export const getMessages = async (req: any, res: Response) => {
     res.status(500).json({ message: "Lỗi lấy tin nhắn", error });
   }
 };
+
+export const markMessagesAsSeen = async (req: any, res: Response) => {
+  try {
+    const { partnerId } = req.params;
+    const userId = req.user.userId;
+    await Message.updateMany(
+      {
+        sender_id: partnerId,
+        receiver_id: userId,
+        is_seen: false,
+      },
+      { $set: { is_seen: true } },
+    );
+    res.status(200).json({ message: "Đã đánh dấu tin nhắn là đã xem" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi cập nhật trạng thái", error });
+  }
+};
