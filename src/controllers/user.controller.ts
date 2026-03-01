@@ -32,6 +32,13 @@ export const toggleFollow = async (req: any, res: Response) => {
       following_id: followingId,
     });
     await newFollow.save();
+    const receiverSocketId = getReceiverSocketId(followingId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("new_notifications", {
+        type: "Follow",
+        sender: followerId,
+      });
+    }
     res.status(200).json({ message: "Đã theo dõi thành công" });
   } catch (error) {
     res.status(500).json({ message: "Lỗi hệ thống", error });
