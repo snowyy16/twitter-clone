@@ -14,9 +14,9 @@ export const createTweet = async (
   try {
     const { content, video } = req.body;
     const hashtags = content.match(/#[a-z0-9_]+/gi) || [];
-    const clearHastags = hashtags.map((tag: string) => {
-      tag.toLowerCase().replace("#", "");
-    });
+    const clearHastags = hashtags.map((tag: string) =>
+      tag.toLowerCase().replace("#", ""),
+    );
     const imageUrl = (req.file as any)?.location || "";
 
     const newTweet = new Tweet({

@@ -121,6 +121,7 @@ export const updateProfile = async (req: any, res: Response) => {
           console.error("Lỗi xóa ảnh cũ trên S3:", s3Error);
         }
       }
+      updateData.avatar = avatarUrl;
     }
 
     const updateUser = await User.findByIdAndUpdate(
